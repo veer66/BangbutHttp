@@ -1,0 +1,10 @@
+{
+  "name": "BangbutHttp",
+  "version": "0.0.1",
+  "homepage": "https://github.com/veer66/BangbutHttp",
+  "authors": [
+    "Vee Satayamas <vsatayamas@gmail.com>"
+  ],
+  "main": "bangbut_http.js",
+  "license": "BSD"
+}
