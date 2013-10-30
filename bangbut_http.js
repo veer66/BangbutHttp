@@ -11,12 +11,14 @@ function createHttp() {
           if (app) {
             if(opt && opt.isLoginRequest) {
               app.authFail();
-            } else {
+            } else {              
               retryList.push({url: xhr.url, method: xhr.method, requestBody: xhr.requestBody, callback: fn});
               app.loginRequired();                            
             }
           }
+          // xhr.abort();
         } else {
+          // xhr.abort();
           fn(new Error("server return error"), xhr.status);
         }
       }            
@@ -25,6 +27,14 @@ function createHttp() {
       
   return {
     "app": null, 
+    "upload": function(uri, file, fn) {
+      var xhr = new XMLHttpRequest();
+      var fd = new FormData();
+      xhr.open("POST", uri, true);
+      xhr.onreadystatechange = createResponseHandler(xhr, fn, {}, this.app);
+      fd.append("file", file);
+      xhr.send(fd);
+    },
     "post": function(uri, params) {
       var fn, opt;
       if (arguments.length == 4) {
@@ -33,15 +43,20 @@ function createHttp() {
       } else if (arguments.length == 3) {
         fn = arguments[2];
       }      
+
+      var queries = [];
+      for (var k in params) {
+        queries.push(escape(k) + "=" + escape(params[k]));
+      }
+      var queryString = queries.join("&");
       
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", uri, true);
-      var formData = new FormData();
-      for (var k in params) {
-        formData.append(k, params[k]);
-      }
+      
+      xhr.open("POST", uri, true);      
+      xhr.responseType = "text";
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       xhr.onreadystatechange = createResponseHandler(xhr, fn, opt, this.app);
-      xhr.send(formData);    
+      xhr.send(queryString);    
     },
     "get": function(uri, params) {
       var fn, opt;
@@ -57,7 +72,14 @@ function createHttp() {
       for (var k in params) {
         queries.push(escape(k) + "=" + escape(params[k]));
       }
-      xhr.open("GET", uri + "?" + queries.join("&"), true);
+      var queryString = queries.join("&");
+      var uriWithQuery;
+      if (queryString.length > 0) 
+        uriWithQuery = uri + "?" + queryString;
+      else
+        uriWithQuery = uri;
+              
+      xhr.open("GET", uriWithQuery, true);
       xhr.onreadystatechange = createResponseHandler(xhr, fn, opt, this.app);
       xhr.send();    
     },
